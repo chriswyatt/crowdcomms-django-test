@@ -1,5 +1,6 @@
 from datetime import datetime
 
+from analytics.models import UserVisit
 from django.utils import timezone
 
 # Create your views here.
@@ -14,12 +15,26 @@ class HelloWorld(APIView):
     """
 
     def get(self, request, format=None):
+        now = timezone.now()
+        user = request.user
+
+        if user.is_authenticated:
+            (user_visit,
+             user_visit_created) = UserVisit.objects.get_or_create(
+                last_seen=now,
+                user=user,
+            )
+            user_visit.visits += 1
+            user_visit.save()
+
         data = {
             'version': 1.0,
-            'time': timezone.now(),
+            'time': now,
             'recent_visitors': 0,
             'all_visitors': 0,
             'all_visits': 0,
         }
-        return Response(data)
+        response = Response(data)
+
+        return response
 
