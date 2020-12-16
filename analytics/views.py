@@ -49,4 +49,3 @@ class HelloWorld(APIView):
         response = Response(data)
 
         return response
-
