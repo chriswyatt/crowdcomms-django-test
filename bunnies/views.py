@@ -44,4 +44,4 @@ class BunnyViewSet(viewsets.ModelViewSet):
         if user.is_authenticated:
             UserVisit.track_visit(user)
 
-        return super().list(request, *args, *kwargs)
+        return super().list(request, *args, **kwargs)
