@@ -39,16 +39,9 @@ class BunnyViewSet(viewsets.ModelViewSet):
     queryset = Bunny.objects.all()
 
     def list(self, request, *args, **kwargs):
-        now = timezone.now()
         user = request.user
 
         if user.is_authenticated:
-            (user_visit,
-             user_visit_created) = UserVisit.objects.get_or_create(
-                user=user,
-            )
-            user_visit.last_seen = now
-            user_visit.visits += 1
-            user_visit.save()
+            UserVisit.track_visit(user)
 
         return super().list(request, *args, *kwargs)

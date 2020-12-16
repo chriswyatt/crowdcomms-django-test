@@ -24,13 +24,7 @@ class HelloWorld(APIView):
         user = request.user
 
         if user.is_authenticated:
-            (user_visit,
-             user_visit_created) = UserVisit.objects.get_or_create(
-                user=user,
-            )
-            user_visit.last_seen = now
-            user_visit.visits += 1
-            user_visit.save()
+            UserVisit.track_visit(user, now=now)
 
         recent_user_filter = Q(last_seen__gt=now - OLD_USER_THRESHOLD)
 
