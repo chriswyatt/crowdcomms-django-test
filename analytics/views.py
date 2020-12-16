@@ -1,11 +1,16 @@
-from datetime import datetime
+from datetime import timedelta
 
 from analytics.models import UserVisit
+from django.db.models import Count, Sum
+from django.db.models.query_utils import Q
 from django.utils import timezone
 
 # Create your views here.
 from rest_framework.response import Response
 from rest_framework.views import APIView
+
+
+OLD_USER_THRESHOLD = timedelta(hours=3)
 
 
 class HelloWorld(APIView):
@@ -21,19 +26,26 @@ class HelloWorld(APIView):
         if user.is_authenticated:
             (user_visit,
              user_visit_created) = UserVisit.objects.get_or_create(
-                last_seen=now,
                 user=user,
             )
+            user_visit.last_seen = now
             user_visit.visits += 1
             user_visit.save()
+
+        recent_user_filter = Q(last_seen__gt=now - OLD_USER_THRESHOLD)
 
         data = {
             'version': 1.0,
             'time': now,
-            'recent_visitors': 0,
-            'all_visitors': 0,
-            'all_visits': 0,
-        }
+            **UserVisit.objects.aggregate(
+                all_visitors=Count('user'),
+                recent_visitors=Count(
+                    'user',
+                    filter=recent_user_filter,
+                ),
+                all_visits=Sum('visits'),
+            )}
+
         response = Response(data)
 
         return response
