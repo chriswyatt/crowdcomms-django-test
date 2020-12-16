@@ -12,9 +12,7 @@ from bunnies.serializers import BunnySerializer, RabbitHoleSerializer
 
 class RabbitHoleViewSet(viewsets.ModelViewSet):
     serializer_class = RabbitHoleSerializer
-
     permission_classes = (IsAuthenticated, RabbitHolePermissions)
-
     queryset = RabbitHole.objects.all()
 
     def create(self, request, *args, **kwargs):
