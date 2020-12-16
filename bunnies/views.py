@@ -20,13 +20,14 @@ class RabbitHoleViewSet(viewsets.ModelViewSet):
 
     def filter_queryset(self, queryset):
         kwargs = self.kwargs
+        user = self.request.user
 
         # Regular users can only see their own RabbitHole objects
-        if not self.request.user.is_superuser:
-            queryset = queryset.filter(owner=self.request.user)
+        if not user.is_superuser:
+            queryset = queryset.filter(owner=user)
 
         if 'pk' in kwargs:
-            hole_id = self.kwargs['pk']
+            hole_id = kwargs['pk']
             queryset = queryset.filter(id=hole_id)
 
         return queryset
