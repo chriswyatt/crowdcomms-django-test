@@ -9,9 +9,6 @@ class RabbitHoleSerializer(serializers.ModelSerializer):
     bunnies = serializers.PrimaryKeyRelatedField(many=True, queryset=Bunny.objects.all())
     bunny_count = serializers.SerializerMethodField()
 
-    def create(self, validated_data):
-        return super().create(validated_data)
-
     def validate_owner(self, owner):
         if self.instance is None:
             # When an object is initially created, ensure that the owner
