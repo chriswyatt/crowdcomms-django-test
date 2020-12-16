@@ -1,3 +1,4 @@
+from django.db.models import Count
 from rest_framework import serializers
 
 from bunnies.models import Bunny, RabbitHole
@@ -8,8 +9,19 @@ class RabbitHoleSerializer(serializers.ModelSerializer):
     bunnies = serializers.PrimaryKeyRelatedField(many=True, queryset=Bunny.objects.all())
     bunny_count = serializers.SerializerMethodField()
 
+    def create(self, validated_data):
+        return super().create(validated_data)
+
+    def validate_owner(self, owner):
+        if self.instance is None:
+            # When an object is initially created, ensure that the owner
+            # is always the request user
+            return self.context['request'].user
+        else:
+            return owner
+
     def get_bunny_count(self, obj):
-        return Bunny.objects.count()
+        return obj.bunnies.count()
 
     class Meta:
         model = RabbitHole
@@ -22,9 +34,15 @@ class BunnySerializer(serializers.ModelSerializer):
     family_members = serializers.SerializerMethodField()
 
     def get_family_members(self, obj):
-        return []
+        queryset = obj.home.bunnies.exclude(pk=obj.pk)
+        return queryset.values_list('name', flat=True)
 
     def validate(self, attrs):
+        home = attrs['home']
+
+        if home.bunnies.count() >= home.bunnies_limit:
+            raise serializers.ValidationError("Bunny limit exceeded")
+
         return attrs
 
     class Meta:
